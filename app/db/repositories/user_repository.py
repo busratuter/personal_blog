@@ -1,8 +1,8 @@
 # db/repositories/user_repository.py
 from sqlalchemy.orm import Session
-from db.models import User
-from schemas.user import UserCreate
-from auth.auth import hash_password
+from app.db.models import User
+from app.schemas.user import UserCreate
+from app.auth.auth import hash_password
 
 def create_user(db: Session, user_data: UserCreate):
     user = User(

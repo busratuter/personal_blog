@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from db.models import Article
-from schemas.article import ArticleCreate, ArticleUpdate
+from app.db.models import Article
+from app.schemas.article import ArticleCreate, ArticleUpdate
 
 def create_article(db: Session, article_data: ArticleCreate, user_id: int):
     article = Article(
