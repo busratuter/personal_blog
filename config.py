@@ -22,8 +22,8 @@ DATABASE_URL = "sqlite:///./blog.db"
 
 
 # Diğer konfigürasyon değerleri (örneğin JWT secret, Azure Blob vs.)
-JWT_SECRET = os.getenv("JWT_SECRET", "8d5f8db058e83e6415f2273b3c67bb5b8ea2014cfd89775671e64d648561cd93")
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_SECRET = "c25e1f1749e52e0573d452f6c96d8469291b291a09f7e892efc5d78e46125d3b"
+JWT_ALGORITHM = "HS256"
 
 AZURE_BLOB_CONNECTION_STRING = os.getenv("AZURE_BLOB_CONNECTION_STRING")
 AZURE_BLOB_CONTAINER = os.getenv("AZURE_BLOB_CONTAINER", "your_container_name")

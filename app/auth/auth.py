@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 from config import JWT_SECRET, JWT_ALGORITHM
 
 from passlib.context import CryptContext
@@ -9,15 +9,25 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import JWT_SECRET, JWT_ALGORITHM
 
 def create_access_token(data: dict, expires_delta: int = 30):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_delta)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    try:
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(minutes=expires_delta)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        print(f"Token created with secret: {JWT_SECRET[:10]}...")
+        return encoded_jwt
+    except Exception as e:
+        print(f"Token creation error: {str(e)}")
+        raise
 
 def verify_token(token: str):
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    return payload
-
+    try:
+        print(f"Verifying token with secret: {JWT_SECRET[:10]}...")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except JWTError as e:
+        print(f"Token verification error: {str(e)}")
+        raise
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
