@@ -11,7 +11,7 @@ import {
   CircularProgress,
   Grid
 } from '@mui/material';
-import api from '../services/api';
+import { getUserProfile, updateUserProfile, updatePassword } from '../services/api';
 
 const Settings = () => {
   const [userData, setUserData] = useState({
@@ -32,15 +32,15 @@ const Settings = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        console.log('Kullanıcı verisi yükleniyor...');
-        const response = await api.get('/users/me');
-        console.log('Gelen veri:', response.data);
-        setUserData(response.data);
+        console.log('Loading user data...');
+        const response = await getUserProfile();
+        console.log('User data received:', response);
+        setUserData(response);
       } catch (error) {
-        console.error('Hata detayı:', error);
+        console.error('Error details:', error);
         setMessage({ 
           type: 'error', 
-          text: error.response?.data?.detail || 'Kullanıcı bilgileri yüklenemedi. Lütfen tekrar deneyin.' 
+          text: error.detail || 'Failed to load user data. Please try again.' 
         });
       }
     };
@@ -52,15 +52,17 @@ const Settings = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.put('/users/me', {
-        first_name: userData.first_name,
-        last_name: userData.last_name
+      console.log('Updating profile with data:', userData);
+      await updateUserProfile(userData);
+      setMessage({ 
+        type: 'success', 
+        text: 'Profile updated successfully!' 
       });
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
+      console.error('Profile update error:', error);
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.detail || 'Failed to update profile' 
+        text: error.detail || 'Failed to update profile' 
       });
     } finally {
       setLoading(false);
@@ -76,16 +78,17 @@ const Settings = () => {
 
     setLoading(true);
     try {
-      await api.put('/users/password', {
+      await updatePassword({
         current_password: passwords.current_password,
         new_password: passwords.new_password
       });
       setMessage({ type: 'success', text: 'Password updated successfully!' });
       setPasswords({ current_password: '', new_password: '', confirm_password: '' });
     } catch (error) {
+      console.error('Password update error:', error);
       setMessage({ 
         type: 'error', 
-        text: error.response?.data?.detail || 'Failed to update password' 
+        text: error.detail || 'Failed to update password' 
       });
     } finally {
       setLoading(false);
@@ -116,27 +119,29 @@ const Settings = () => {
                   <TextField
                     fullWidth
                     label="First Name"
-                    value={userData.first_name}
+                    value={userData.first_name || ''}
                     onChange={(e) => setUserData({ ...userData, first_name: e.target.value })}
                     variant="outlined"
                     margin="normal"
+                    disabled={loading}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Last Name"
-                    value={userData.last_name}
+                    value={userData.last_name || ''}
                     onChange={(e) => setUserData({ ...userData, last_name: e.target.value })}
                     variant="outlined"
                     margin="normal"
+                    disabled={loading}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Email"
-                    value={userData.email}
+                    value={userData.email || ''}
                     disabled
                     variant="outlined"
                     margin="normal"
@@ -172,6 +177,7 @@ const Settings = () => {
                 onChange={(e) => setPasswords({ ...passwords, current_password: e.target.value })}
                 variant="outlined"
                 margin="normal"
+                disabled={loading}
               />
               <TextField
                 fullWidth
@@ -181,6 +187,7 @@ const Settings = () => {
                 onChange={(e) => setPasswords({ ...passwords, new_password: e.target.value })}
                 variant="outlined"
                 margin="normal"
+                disabled={loading}
               />
               <TextField
                 fullWidth
@@ -190,6 +197,7 @@ const Settings = () => {
                 onChange={(e) => setPasswords({ ...passwords, confirm_password: e.target.value })}
                 variant="outlined"
                 margin="normal"
+                disabled={loading}
               />
               <Button
                 type="submit"

@@ -8,6 +8,7 @@ import WriteArticle from './pages/WriteArticle';
 import Settings from './pages/Settings';
 import HomePage from './pages/HomePage';
 import ArticleDetail from './pages/ArticleDetail';
+import EditArticle from './pages/EditArticle';
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('token');
@@ -48,6 +49,10 @@ function App() {
             <Route 
               path="/write" 
               element={isAuthenticated ? <WriteArticle /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="/edit-article/:id" 
+              element={isAuthenticated ? <EditArticle /> : <Navigate to="/login" />} 
             />
             <Route 
               path="/article/:id" 

@@ -11,12 +11,13 @@ import {
   Alert,
   Snackbar
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { createArticle } from '../services/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getArticleById, updateArticle } from '../services/api';
 import api from '../services/api';
 
-const WriteArticle = () => {
+const EditArticle = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [article, setArticle] = useState({
     title: '',
     content: '',
@@ -38,12 +39,21 @@ const WriteArticle = () => {
       return;
     }
 
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/categories');
-        setCategories(response.data);
+        const [articleData, categoriesData] = await Promise.all([
+          getArticleById(id),
+          api.get('/categories')
+        ]);
+        
+        setArticle({
+          title: articleData.title,
+          content: articleData.content,
+          category_id: articleData.category_id
+        });
+        setCategories(categoriesData.data);
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error fetching data:', error);
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
@@ -51,14 +61,14 @@ const WriteArticle = () => {
         }
         setSnackbar({
           open: true,
-          message: 'Failed to load categories',
+          message: 'Failed to load article data',
           severity: 'error'
         });
       }
     };
 
-    fetchCategories();
-  }, [navigate]);
+    fetchData();
+  }, [id, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,17 +91,17 @@ const WriteArticle = () => {
 
     setLoading(true);
     try {
-      await createArticle(article);
+      await updateArticle(id, article);
       setSnackbar({
         open: true,
-        message: 'Article published successfully!',
+        message: 'Article updated successfully!',
         severity: 'success'
       });
       setTimeout(() => {
         navigate('/profile');
       }, 1500);
     } catch (error) {
-      console.error('Makale oluşturma hatası:', error);
+      console.error('Article update error:', error);
       if (error.response?.status === 401 || error.detail === "Invalid token") {
         localStorage.removeItem('token');
         navigate('/login');
@@ -99,7 +109,7 @@ const WriteArticle = () => {
       }
       setSnackbar({
         open: true,
-        message: error.detail || 'Makale oluşturulurken bir hata oluştu',
+        message: error.detail || 'Failed to update article',
         severity: 'error'
       });
     } finally {
@@ -122,7 +132,7 @@ const WriteArticle = () => {
             color: '#333'
           }}
         >
-          Write New Article
+          Edit Article
         </Typography>
       </Box>
 
@@ -215,7 +225,7 @@ const WriteArticle = () => {
                   fontSize: '1.1rem'
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : 'Publish'}
+                {loading ? <CircularProgress size={24} /> : 'Save Changes'}
               </Button>
             </Box>
           </Box>
@@ -236,4 +246,4 @@ const WriteArticle = () => {
   );
 };
 
-export default WriteArticle;
+export default EditArticle; 

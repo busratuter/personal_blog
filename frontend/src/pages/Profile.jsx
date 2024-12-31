@@ -83,8 +83,18 @@ const Profile = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#2c3e50', fontWeight: 'bold' }}>
+    <Container maxWidth="lg">
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        sx={{ 
+          mt: 6,
+          mb: 4, 
+          color: '#2c3e50', 
+          fontWeight: 'bold',
+          textAlign: 'center'
+        }}
+      >
         My Articles
       </Typography>
 
@@ -102,7 +112,7 @@ const Profile = () => {
               </Box>
               
               <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-                {article.content.substring(0, 150)}...
+                {article.content.substring(0, 300)}...
               </Typography>
 
               <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
@@ -141,7 +151,7 @@ const Profile = () => {
                 <IconButton 
                   onClick={() => handleEdit(article.id)}
                   sx={{ 
-                    color: '#f39c12',
+                    color: '#007bff',
                     '&:hover': {
                       backgroundColor: 'rgba(243, 156, 18, 0.1)'
                     }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Paper, Typography, Box, Alert } from '@mui/material';
+import { TextField, Button, Paper, Typography, Box, Alert, CircularProgress } from '@mui/material';
 import { login } from '../services/api';
 
 const Login = () => {
@@ -10,6 +10,7 @@ const Login = () => {
     password: '',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,54 +21,90 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
       const response = await login(formData.username, formData.password);
-      
       if (response.access_token) {
         localStorage.setItem('token', response.access_token);
         window.location.href = '/';
       } else {
-        setError('Invalid response from server');
+        setError('Invalid response received');
       }
     } catch (err) {
-      const errorMessage = err.detail || err.message || 'Login failed. Please check your credentials.';
-      setError(typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage);
+      console.error('Login error:', err);
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('An error occurred while logging in');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Paper className="max-w-md w-full space-y-8 p-10" elevation={3}>
-        <div>
-          <Typography component="h1" variant="h5" className="text-center">
-            Sign in to your account
-          </Typography>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <TextField
-              required
-              fullWidth
-              label="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              variant="outlined"
-            />
-            <TextField
-              required
-              fullWidth
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              variant="outlined"
-            />
-          </div>
+    <Box 
+      sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        bgcolor: '#f5f5f5'
+      }}
+    >
+      <Paper 
+        sx={{ 
+          maxWidth: '400px',
+          width: '100%',
+          mx: 2,
+          p: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3
+        }} 
+        elevation={3}
+      >
+        <Typography 
+          variant="h5" 
+          component="h1" 
+          sx={{ 
+            textAlign: 'center',
+            color: '#1976d2',
+            fontWeight: 'bold'
+          }}
+        >
+          Sign In
+        </Typography>
 
-          {error && typeof error === 'string' && (
-            <Alert severity="error" className="mt-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <TextField
+            required
+            fullWidth
+            label="Username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            variant="outlined"
+            disabled={loading}
+          />
+          <TextField
+            required
+            fullWidth
+            label="Password"
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            variant="outlined"
+            disabled={loading}
+          />
+
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
               {error}
             </Alert>
           )}
@@ -76,14 +113,19 @@ const Login = () => {
             type="submit"
             fullWidth
             variant="contained"
-            color="primary"
-            className="mt-4"
+            disabled={loading}
+            sx={{ 
+              mt: 2,
+              py: 1.5,
+              textTransform: 'none',
+              fontSize: '1.1rem'
+            }}
           >
-            Sign in
+            {loading ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>
         </form>
       </Paper>
-    </div>
+    </Box>
   );
 };
 

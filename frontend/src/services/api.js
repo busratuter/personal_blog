@@ -16,16 +16,29 @@ api.interceptors.request.use((config) => {
     console.log('Token gönderiliyor:', config.headers.Authorization);
   } else {
     console.log('Token bulunamadı');
+    throw new Error('No token found');
   }
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const login = async (username, password) => {
   try {
-    const response = await api.post('/users/login', {
+    const response = await axios.post(`${API_URL}/users/login`, {
       username: username,
       password: password
     });
+    
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token);
       console.log('Token kaydedildi:', response.data.access_token);
@@ -35,15 +48,9 @@ export const login = async (username, password) => {
     console.error('Login error:', error.response?.data);
     
     if (error.response?.data) {
-      if (Array.isArray(error.response.data)) {
-        throw new Error(error.response.data[0]?.msg || 'Login failed');
-      } else if (typeof error.response.data === 'object') {
-        throw new Error(error.response.data.detail || 'Login failed');
-      } else {
-        throw new Error(error.response.data || 'Login failed');
-      }
+      throw error.response.data;
     }
-    throw new Error('Network error occurred');
+    throw new Error('Bağlantı hatası oluştu');
   }
 };
 
@@ -58,9 +65,16 @@ export const getArticles = async () => {
 
 export const createArticle = async (articleData) => {
   try {
-    const response = await api.post('/articles', articleData);
+    console.log('Creating article with data:', articleData);
+    const response = await api.post('/articles', {
+      title: articleData.title,
+      content: articleData.content,
+      category_id: parseInt(articleData.category_id)
+    });
+    console.log('Article created:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Error creating article:', error.response?.data);
     throw error.response?.data || error;
   }
 };
@@ -83,9 +97,16 @@ export const getUserProfile = async () => {
 
 export const updateUserProfile = async (userData) => {
   try {
-    const response = await api.put('/users/me', userData);
+    console.log('Updating user profile with data:', userData);
+    const response = await api.put('/users/me', {
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      email: userData.email
+    });
+    console.log('Profile updated:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Error updating profile:', error.response?.data);
     throw error.response?.data || error;
   }
 };
