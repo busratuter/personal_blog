@@ -25,7 +25,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await login(formData.username, formData.password);
+      const response = await login(formData.username.trim(), formData.password);
       if (response.access_token) {
         localStorage.setItem('token', response.access_token);
         window.location.href = '/';
