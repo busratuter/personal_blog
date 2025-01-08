@@ -9,63 +9,83 @@ import Settings from './pages/Settings';
 import HomePage from './pages/HomePage';
 import ArticleDetail from './pages/ArticleDetail';
 import EditArticle from './pages/EditArticle';
+import SavedArticles from './pages/SavedArticles';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-function App() {
-  const isAuthenticated = !!localStorage.getItem('token');
-
-  if (!isAuthenticated && window.location.pathname !== '/login') {
-    window.location.href = '/login';
-    return null;
+// PrivateRoute component
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return null; // or a loading spinner
   }
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+function AppContent() {
+  const { isAuthenticated } = useAuth();
 
   return (
-    <Router>
+    <Box sx={{ 
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      bgcolor: '#f5f5f5'
+    }}>
+      {isAuthenticated && <Navbar />}
       <Box sx={{ 
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
-        bgcolor: '#f5f5f5'
+        overflow: 'auto'
       }}>
-        {isAuthenticated && <Navbar />}
-        <Box sx={{ 
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'auto'
-        }}>
-          <Routes>
-            <Route 
-              path="/login" 
-              element={isAuthenticated ? <Navigate to="/" /> : <Login />} 
-            />
-            <Route 
-              path="/profile" 
-              element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/settings" 
-              element={isAuthenticated ? <Settings /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/write" 
-              element={isAuthenticated ? <WriteArticle /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/edit-article/:id" 
-              element={isAuthenticated ? <EditArticle /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/article/:id" 
-              element={isAuthenticated ? <ArticleDetail /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/" 
-              element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />} 
-            />
-          </Routes>
-        </Box>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={isAuthenticated ? <Navigate to="/" /> : <Login />} 
+          />
+          <Route 
+            path="/profile" 
+            element={<PrivateRoute><Profile /></PrivateRoute>} 
+          />
+          <Route 
+            path="/settings" 
+            element={<PrivateRoute><Settings /></PrivateRoute>} 
+          />
+          <Route 
+            path="/write" 
+            element={<PrivateRoute><WriteArticle /></PrivateRoute>} 
+          />
+          <Route 
+            path="/edit-article/:id" 
+            element={<PrivateRoute><EditArticle /></PrivateRoute>} 
+          />
+          <Route 
+            path="/article/:id" 
+            element={<PrivateRoute><ArticleDetail /></PrivateRoute>} 
+          />
+          <Route 
+            path="/" 
+            element={<PrivateRoute><HomePage /></PrivateRoute>} 
+          />
+          <Route 
+            path="/saved-articles" 
+            element={<PrivateRoute><SavedArticles /></PrivateRoute>} 
+          />
+        </Routes>
       </Box>
-    </Router>
+    </Box>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 

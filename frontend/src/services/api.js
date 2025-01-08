@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000'
+    baseURL: 'http://localhost:8000',
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
 // Request interceptor to add token
@@ -17,33 +21,30 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        // Login sayfasındayken 401 hatasını yönlendirme yapmadan geç
+        if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
             localStorage.removeItem('token');
-            window.location.href = '/login';
         }
-        return Promise.reject(error);
+        return Promise.reject(error.response?.data || error);
     }
 );
 
 // Auth functions
 export const login = async (username, password) => {
     try {
-        const response = await axios.post('http://localhost:8000/users/login', {
+        const response = await api.post('/users/login', {
             username,
             password
         });
-        if (response.data.access_token) {
-            localStorage.setItem('token', response.data.access_token);
-        }
         return response.data;
     } catch (error) {
-        throw error.response?.data || error;
+        throw error;
     }
 };
 
 export const register = async (username, email, password) => {
     try {
-        const response = await axios.post('http://localhost:8000/users/register', {
+        const response = await api.post('/users/register', {
             username,
             email,
             password
@@ -99,6 +100,27 @@ export const deleteArticle = async (id) => {
 export const getMyArticles = async () => {
     const response = await api.get('/articles/my-articles');
     return response.data;
+};
+
+// Saved Articles endpoints
+export const saveArticle = async (articleId) => {
+    const response = await api.post(`/saved-articles/${articleId}`);
+    return response.data;
+};
+
+export const unsaveArticle = async (articleId) => {
+    const response = await api.delete(`/saved-articles/${articleId}`);
+    return response.data;
+};
+
+export const getSavedArticles = async () => {
+    const response = await api.get('/saved-articles');
+    return response.data;
+};
+
+export const checkIfArticleSaved = async (articleId) => {
+    const response = await api.get(`/saved-articles/${articleId}/is-saved`);
+    return response.data.is_saved;
 };
 
 export default api;

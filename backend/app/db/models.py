@@ -39,3 +39,13 @@ class Article(Base):
 
     author = relationship("User", back_populates="articles")
     category = relationship("Category", back_populates="articles")
+
+class SavedArticle(Base):
+    __tablename__ = "saved_articles"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    article_id = Column(Integer, ForeignKey("articles.id"))
+    saved_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", backref="saved_articles")
+    article = relationship("Article", backref="saved_by_users")

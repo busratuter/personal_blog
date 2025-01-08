@@ -14,10 +14,12 @@ import {
   DialogActions,
   Divider
 } from '@mui/material';
-import { login, register } from '../services/api';
+import { login as loginApi, register } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -51,29 +53,38 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setAlert({ message: '', severity: 'error' });
     setLoading(true);
 
+    if (!formData.username.trim() || !formData.password.trim()) {
+      setAlert({ message: 'Lütfen tüm alanları doldurun', severity: 'error' });
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await login(formData.username.trim(), formData.password);
-      if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
-        window.location.href = '/';
-      } else {
-        setAlert({ message: 'Invalid response received', severity: 'error' });
+      const response = await loginApi(formData.username.trim(), formData.password);
+      if (response && response.access_token) {
+        authLogin(response.access_token);
+        navigate('/', { replace: true });
       }
-    } catch (err) {
-      console.error('Login error:', err);
-      if (err.detail) {
-        setAlert({ message: err.detail, severity: 'error' });
-      } else if (err.message) {
-        setAlert({ message: err.message, severity: 'error' });
-      } else {
-        setAlert({ message: 'An error occurred while logging in', severity: 'error' });
-      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setAlert({ 
+        message: 'Kullanıcı adı veya şifre hatalı', 
+        severity: 'error' 
+      });
     } finally {
       setLoading(false);
+      setFormData(prev => ({
+        ...prev,
+        password: ''
+      }));
     }
   };
 
@@ -140,7 +151,19 @@ const Login = () => {
           Sign In
         </Typography>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <Box 
+          component="form" 
+          id="login-form"
+          noValidate
+          autoComplete="off"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await handleSubmit(e);
+            return false;
+          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+        >
           <TextField
             required
             fullWidth
@@ -183,7 +206,7 @@ const Login = () => {
           >
             {loading ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>
-        </form>
+        </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
           <Divider sx={{ flex: 1 }} />
@@ -210,7 +233,10 @@ const Login = () => {
       <Dialog open={registerOpen} onClose={() => setRegisterOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ textAlign: 'center' }}>Create New Account</DialogTitle>
         <DialogContent>
-          <form onSubmit={handleRegisterSubmit} style={{ marginTop: '16px' }}>
+          <Box component="form" onSubmit={(e) => {
+            e.preventDefault();
+            handleRegisterSubmit(e);
+          }} style={{ marginTop: '16px' }}>
             <TextField
               required
               fullWidth
@@ -256,14 +282,19 @@ const Login = () => {
                 {registerError}
               </Alert>
             )}
-          </form>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={() => setRegisterOpen(false)}>Cancel</Button>
           <Button
-            onClick={handleRegisterSubmit}
+            type="submit"
+            form="register-form"
             variant="contained"
             disabled={registerLoading}
+            onClick={(e) => {
+              e.preventDefault();
+              handleRegisterSubmit(e);
+            }}
           >
             {registerLoading ? <CircularProgress size={24} /> : 'Register'}
           </Button>

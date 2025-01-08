@@ -13,9 +13,11 @@ import {
 import CreateIcon from '@mui/icons-material/Create';
 import { Link, useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const isLoggedIn = !!localStorage.getItem('token');
@@ -44,9 +46,10 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    logout();
+    setUserProfile(null);
     handleClose();
+    navigate('/login', { replace: true });
   };
 
   const getUserDisplayName = () => {
@@ -135,10 +138,16 @@ const Navbar = () => {
                 horizontal: 'right',
               }}
             >
-              <MenuItem onClick={() => { navigate('/profile'); handleClose(); }}>
+              <MenuItem onClick={() => navigate('/write')}>
+                Write Article
+              </MenuItem>
+              <MenuItem onClick={() => navigate('/profile')}>
                 Profile
               </MenuItem>
-              <MenuItem onClick={() => { navigate('/settings'); handleClose(); }}>
+              <MenuItem onClick={() => navigate('/saved-articles')}>
+                Saved Articles
+              </MenuItem>
+              <MenuItem onClick={() => navigate('/settings')}>
                 Settings
               </MenuItem>
               <MenuItem onClick={handleLogout}>Logout</MenuItem>

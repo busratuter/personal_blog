@@ -10,22 +10,31 @@ import {
   Button,
   Avatar,
   Chip,
-  Divider
+  Divider,
+  IconButton
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { getArticlesFeed } from '../services/api';
+import { getArticlesFeed, saveArticle, unsaveArticle, checkIfArticleSaved } from '../services/api';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import PersonIcon from '@mui/icons-material/Person';
+import { Bookmark, BookmarkBorder } from '@mui/icons-material';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
+  const [savedStates, setSavedStates] = useState({});
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         const data = await getArticlesFeed();
         setArticles(data);
+        // Check saved state for each article
+        const savedStatesObj = {};
+        for (const article of data) {
+          const isSaved = await checkIfArticleSaved(article.id);
+          savedStatesObj[article.id] = isSaved;
+        }
+        setSavedStates(savedStatesObj);
       } catch (error) {
         console.error('Error fetching articles:', error);
       }
@@ -37,6 +46,23 @@ const HomePage = () => {
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('tr-TR', options);
+  };
+
+  const handleSaveToggle = async (articleId) => {
+    try {
+      if (savedStates[articleId]) {
+        await unsaveArticle(articleId);
+      } else {
+        await saveArticle(articleId);
+      }
+      // Update saved state
+      setSavedStates(prev => ({
+        ...prev,
+        [articleId]: !prev[articleId]
+      }));
+    } catch (error) {
+      console.error('Error toggling save state:', error);
+    }
   };
 
   return (
@@ -148,6 +174,16 @@ const HomePage = () => {
               <Divider sx={{ my: 1 }} />
 
               <CardActions sx={{ p: 2, justifyContent: 'flex-end' }}>
+                <IconButton
+                  size="small"
+                  onClick={() => handleSaveToggle(article.id)}
+                  sx={{
+                    color: savedStates[article.id] ? '#3498db' : 'text.secondary',
+                    mr: 1
+                  }}
+                >
+                  {savedStates[article.id] ? <Bookmark /> : <BookmarkBorder />}
+                </IconButton>
                 <Button 
                   variant="contained"
                   onClick={() => navigate(`/article/${article.id}`)}

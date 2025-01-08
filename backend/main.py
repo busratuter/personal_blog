@@ -5,6 +5,7 @@ from app.db.database import Base, engine
 from app.routes.users import router as users_router
 from app.routes.articles import router as articles_router
 from app.routes.categories import router as categories_router
+from app.routes.saved_articles import router as saved_articles_router
 from fastapi.middleware.cors import CORSMiddleware
 
 # Veritabanı tablolarını oluşturun (eğer yoksa)
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(users_router)
 app.include_router(articles_router)
 app.include_router(categories_router)
+app.include_router(saved_articles_router)
 
 @app.get("/")
 def read_root():
