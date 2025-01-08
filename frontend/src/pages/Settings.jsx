@@ -82,7 +82,7 @@ const Settings = () => {
         current_password: passwords.current_password,
         new_password: passwords.new_password
       });
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      setMessage({ type: 'success', text: 'Password changed successfully!' });
       setPasswords({ current_password: '', new_password: '', confirm_password: '' });
     } catch (error) {
       console.error('Password update error:', error);
@@ -100,12 +100,6 @@ const Settings = () => {
       <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#2c3e50', fontWeight: 'bold' }}>
         Settings
       </Typography>
-
-      {message.text && (
-        <Alert severity={message.type} sx={{ mb: 3 }} onClose={() => setMessage({ type: '', text: '' })}>
-          {message.text}
-        </Alert>
-      )}
 
       <Grid container spacing={3}>
         <Grid item xs={12}>
@@ -141,12 +135,26 @@ const Settings = () => {
                   <TextField
                     fullWidth
                     label="Email"
+                    type="email"
                     value={userData.email || ''}
-                    disabled
+                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                     variant="outlined"
                     margin="normal"
+                    disabled={loading}
+                    required
                   />
                 </Grid>
+                {message.text && (
+                  <Grid item xs={12}>
+                    <Alert 
+                      severity={message.type} 
+                      sx={{ mt: 2 }}
+                      onClose={() => setMessage({ type: '', text: '' })}
+                    >
+                      {message.text}
+                    </Alert>
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <Button
                     type="submit"
@@ -178,6 +186,7 @@ const Settings = () => {
                 variant="outlined"
                 margin="normal"
                 disabled={loading}
+                required
               />
               <TextField
                 fullWidth
@@ -188,6 +197,7 @@ const Settings = () => {
                 variant="outlined"
                 margin="normal"
                 disabled={loading}
+                required
               />
               <TextField
                 fullWidth
@@ -198,7 +208,19 @@ const Settings = () => {
                 variant="outlined"
                 margin="normal"
                 disabled={loading}
+                required
               />
+
+              {message.text && (
+                <Alert 
+                  severity={message.type} 
+                  sx={{ mt: 2 }}
+                  onClose={() => setMessage({ type: '', text: '' })}
+                >
+                  {message.text}
+                </Alert>
+              )}
+
               <Button
                 type="submit"
                 variant="contained"

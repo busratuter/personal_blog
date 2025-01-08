@@ -1,40 +1,110 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.auth.dependencies import get_current_user
 from app.schemas.article import ArticleCreate, ArticleUpdate, ArticleOut
-from app.db.repositories.article_repository import create_article, get_articles, get_article, update_article, delete_article
+from app.db.repositories.article_repository import (
+    create_article, 
+    get_articles_by_user, 
+    get_articles_except_user,
+    get_article, 
+    update_article, 
+    delete_article,
+    create_article_from_file
+)
 
 router = APIRouter(prefix="/articles", tags=["Articles"])
 
 @router.post("/", response_model=ArticleOut)
-def create_new_article(article_data: ArticleCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def create_new_article(
+    article_data: ArticleCreate, 
+    db: Session = Depends(get_db), 
+    current_user=Depends(get_current_user)
+):
     article = create_article(db, article_data, current_user.id)
     return article
 
-@router.get("/", response_model=list[ArticleOut])
-def list_articles(category_id: int = None, db: Session = Depends(get_db)):
-    articles = get_articles(db, category_id)
-    print("Articles found:", articles)
+@router.get("/my-articles", response_model=list[ArticleOut])
+def get_user_articles(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    articles = get_articles_by_user(db, current_user.id)
+    return articles
+
+@router.get("/feed", response_model=list[ArticleOut])
+def get_articles_feed(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    articles = get_articles_except_user(db, current_user.id)
     return articles
 
 @router.get("/{article_id}", response_model=ArticleOut)
-def read_article(article_id: int, db: Session = Depends(get_db)):
+def read_article(
+    article_id: int, 
+    db: Session = Depends(get_db)
+):
     article = get_article(db, article_id)
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     return article
 
 @router.put("/{article_id}", response_model=ArticleOut)
-def update_existing_article(article_id: int, article_data: ArticleUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def update_existing_article(
+    article_id: int, 
+    article_data: ArticleUpdate, 
+    db: Session = Depends(get_db), 
+    current_user=Depends(get_current_user)
+):
     article = update_article(db, article_id, article_data, current_user.id)
     if not article:
         raise HTTPException(status_code=404, detail="Article not found or not allowed")
     return article
 
 @router.delete("/{article_id}")
-def remove_article(article_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def remove_article(
+    article_id: int, 
+    db: Session = Depends(get_db), 
+    current_user=Depends(get_current_user)
+):
     success = delete_article(db, article_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Article not found or not allowed")
     return {"detail": "Article deleted"}
+
+@router.post("/upload")
+async def upload_article(
+    title: str = Form(...),
+    category_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    # Dosya tipini kontrol et
+    if not file.content_type in ["application/pdf", "text/plain"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF and TXT files are allowed"
+        )
+    
+    try:
+        # Dosya içeriğini oku
+        content = await file.read()
+        
+        # Yeni makale oluştur
+        article = create_article_from_file(
+            db=db,
+            title=title,
+            category_id=category_id,
+            file_content=content,
+            file_name=file.filename,
+            user_id=current_user.id
+        )
+        
+        return article
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

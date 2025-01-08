@@ -1,30 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AppBar, 
   Toolbar, 
+  Typography, 
   Button, 
-  Avatar, 
   IconButton, 
-  Typography,
+  Box,
   Menu,
   MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Box
+  Avatar
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
 import CreateIcon from '@mui/icons-material/Create';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import SettingsIcon from '@mui/icons-material/Settings';
-import LogoutIcon from '@mui/icons-material/Logout';
+import { Link, useNavigate } from 'react-router-dom';
+import { getUserProfile } from '../services/api';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [userProfile, setUserProfile] = useState(null);
+  const isLoggedIn = !!localStorage.getItem('token');
 
-  const handleClick = (event) => {
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUserProfile();
+    }
+  }, [isLoggedIn]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const data = await getUserProfile();
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -34,114 +45,114 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    navigate('/login');
+    handleClose();
   };
 
-  const handleMenuItemClick = (path) => {
-    handleClose();
-    navigate(path);
+  const getUserDisplayName = () => {
+    if (!userProfile) return 'Profile';
+    if (userProfile.first_name && userProfile.last_name) {
+      return `${userProfile.first_name} ${userProfile.last_name}`;
+    }
+    return userProfile.username;
   };
 
   return (
-    <AppBar position="static" color="default" elevation={1}>
-      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-            Home
-          </Typography>
-        </Link>
+    <AppBar position="static" sx={{ backgroundColor: '#c6d2cf' }}>
+      <Toolbar>
+        <Typography 
+          variant="h6" 
+          component={Link} 
+          to="/" 
+          sx={{ 
+            flexGrow: 1, 
+            textDecoration: 'none', 
+            color: '#2c3e50',
+            fontWeight: 'bold'
+          }}
+        >
+          Personal Blog
+        </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link to="/write" style={{ textDecoration: 'none' }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            flexGrow: 2,
+            color: '#2c3e50',
+            fontStyle: 'italic',
+            textAlign: 'center',
+            fontFamily: 'Georgia, serif',
+            fontSize: '1.3rem'
+          }}
+        >
+          "Knowledge transcends its ordinariness and reaches infinity when shared."
+        </Typography>
+
+        {isLoggedIn ? (
+          <Box>
             <Button
               startIcon={<CreateIcon />}
               variant="contained"
-              color="primary"
               sx={{
+                mr: 2,
                 backgroundColor: '#4CAF50',
                 '&:hover': {
                   backgroundColor: '#45a049'
                 }
               }}
+              component={Link}
+              to="/write"
             >
               Write
             </Button>
-          </Link>
-
-          <IconButton 
-            onClick={handleClick}
-            size="small"
-            sx={{ 
-              ml: 2,
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)'
-              }
-            }}
-            aria-controls={open ? 'account-menu' : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? 'true' : undefined}
+            <IconButton
+              onClick={handleMenu}
+              sx={{ 
+                textTransform: 'none',
+                color: '#2c3e50',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                }
+              }}
+            >
+              <Avatar sx={{ width: 32, height: 32, bgcolor: '#2c3e50', fontSize: '0.875rem' }}>
+                {getUserDisplayName().charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography variant="body1" sx={{ ml: 1, color: '#2c3e50' }}>
+                {getUserDisplayName()}
+              </Typography>
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem onClick={() => { navigate('/profile'); handleClose(); }}>
+                Profile
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/settings'); handleClose(); }}>
+                Settings
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
+          </Box>
+        ) : (
+          <Button 
+            color="inherit" 
+            component={Link} 
+            to="/login"
           >
-            <Avatar sx={{ width: 32, height: 32 }} />
-          </IconButton>
-        </Box>
-
-        <Menu
-          anchorEl={anchorEl}
-          id="account-menu"
-          open={open}
-          onClose={handleClose}
-          onClick={handleClose}
-          PaperProps={{
-            elevation: 3,
-            sx: {
-              overflow: 'visible',
-              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-              mt: 1.5,
-              minWidth: 200,
-              '& .MuiMenuItem-root': {
-                px: 2,
-                py: 1,
-              },
-              '&:before': {
-                content: '""',
-                display: 'block',
-                position: 'absolute',
-                top: 0,
-                right: 14,
-                width: 10,
-                height: 10,
-                bgcolor: 'background.paper',
-                transform: 'translateY(-50%) rotate(45deg)',
-                zIndex: 0,
-              },
-            },
-          }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        >
-          <MenuItem onClick={() => handleMenuItemClick('/profile')}>
-            <ListItemIcon>
-              <PersonOutlineIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Profile" />
-          </MenuItem>
-
-          <MenuItem onClick={() => handleMenuItemClick('/settings')}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
-          </MenuItem>
-
-          <Divider />
-
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" color="error" />
-            </ListItemIcon>
-            <ListItemText primary="Logout" sx={{ color: 'error.main' }} />
-          </MenuItem>
-        </Menu>
+            Login
+          </Button>
+        )}
       </Toolbar>
     </AppBar>
   );

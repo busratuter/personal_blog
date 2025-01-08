@@ -16,23 +16,23 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Ana route (sağlık kontrolü vb.)
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the Blog API"}
-
-# Router'ları ekleyelim
-app.include_router(users_router)
-app.include_router(articles_router)
-app.include_router(categories_router)
-
+# CORS ayarları
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # React uygulamasının adresi
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Tüm HTTP metodlarına izin ver
+    allow_headers=["*"],  # Tüm headers'lara izin ver
 )
+
+# Rotaları ekle
+app.include_router(users_router)
+app.include_router(articles_router)
+app.include_router(categories_router)
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

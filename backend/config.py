@@ -25,5 +25,6 @@ DATABASE_URL = "sqlite:///./blog.db"
 JWT_SECRET = "c25e1f1749e52e0573d452f6c96d8469291b291a09f7e892efc5d78e46125d3b"
 JWT_ALGORITHM = "HS256"
 
-AZURE_BLOB_CONNECTION_STRING = os.getenv("AZURE_BLOB_CONNECTION_STRING")
-AZURE_BLOB_CONTAINER = os.getenv("AZURE_BLOB_CONTAINER", "your_container_name")
+# Azure Blob Storage ayarları
+AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "DefaultEndpointsProtocol=https;AccountName=websiteblog;AccountKey=Ua795JcWWv5lQuz9LDN3eS1lyXeuO7excw2jZRm98C1+xQ5KnSu0w0JRePF74aL40EwD/KGbRvam+ASt8KrVFg==;EndpointSuffix=core.windows.net")
+AZURE_STORAGE_CONTAINER_NAME = "blog-articles"
