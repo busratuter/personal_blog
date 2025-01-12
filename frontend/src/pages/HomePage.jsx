@@ -11,17 +11,28 @@ import {
   Avatar,
   Chip,
   Divider,
-  IconButton
+  IconButton,
+  TextField,
+  CircularProgress,
+  Dialog,
+  List,
+  ListItem,
+  ListItemText,
+  Paper
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { getArticlesFeed, saveArticle, unsaveArticle, checkIfArticleSaved } from '../services/api';
+import { getArticlesFeed, saveArticle, unsaveArticle, checkIfArticleSaved, chatWithArticle } from '../services/api';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { Bookmark, BookmarkBorder } from '@mui/icons-material';
+import { Bookmark, BookmarkBorder, Send, Chat, Close } from '@mui/icons-material';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [savedStates, setSavedStates] = useState({});
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -62,6 +73,36 @@ const HomePage = () => {
       }));
     } catch (error) {
       console.error('Error toggling save state:', error);
+    }
+  };
+
+  const handleChatOpen = (article) => {
+    setSelectedArticle(article);
+    setMessages([]);
+  };
+
+  const handleChatClose = () => {
+    setSelectedArticle(null);
+    setMessages([]);
+    setNewMessage('');
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedArticle) return;
+
+    setLoading(true);
+    const userMessage = newMessage;
+    setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
+    setNewMessage('');
+
+    try {
+      const response = await chatWithArticle(selectedArticle.id, userMessage);
+      setMessages(prev => [...prev, { text: response, isUser: false }]);
+    } catch (error) {
+      console.error('Mesaj gönderilirken hata:', error);
+      setMessages(prev => [...prev, { text: 'Bir hata oluştu. Lütfen tekrar deneyin.', isUser: false }]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -173,35 +214,141 @@ const HomePage = () => {
 
               <Divider sx={{ my: 1 }} />
 
-              <CardActions sx={{ p: 2, justifyContent: 'flex-end' }}>
-                <IconButton
-                  size="small"
-                  onClick={() => handleSaveToggle(article.id)}
+              <CardActions sx={{ p: 2, justifyContent: 'space-between' }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<Chat />}
+                  onClick={() => handleChatOpen(article)}
                   sx={{
-                    color: savedStates[article.id] ? '#3498db' : 'text.secondary',
-                    mr: 1
-                  }}
-                >
-                  {savedStates[article.id] ? <Bookmark /> : <BookmarkBorder />}
-                </IconButton>
-                <Button 
-                  variant="contained"
-                  onClick={() => navigate(`/article/${article.id}`)}
-                  sx={{
-                    backgroundColor: '#e2e2e2',
-                    color: '#805b10',
+                    color: '#3498db',
+                    borderColor: '#3498db',
                     '&:hover': {
-                      backgroundColor: '#ffffd'
+                      borderColor: '#2980b9',
+                      backgroundColor: 'rgba(52, 152, 219, 0.1)'
                     }
                   }}
                 >
-                  Read More
+                  Chat with Article
                 </Button>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleSaveToggle(article.id)}
+                    sx={{
+                      color: savedStates[article.id] ? '#3498db' : 'text.secondary'
+                    }}
+                  >
+                    {savedStates[article.id] ? <Bookmark /> : <BookmarkBorder />}
+                  </IconButton>
+                  <Button 
+                    variant="contained"
+                    onClick={() => navigate(`/article/${article.id}`)}
+                    sx={{
+                      backgroundColor: '#3498db',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#2980b9'
+                      }
+                    }}
+                  >
+                    Read More
+                  </Button>
+                </Box>
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
+
+      <Dialog
+        open={!!selectedArticle}
+        onClose={handleChatClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '60vh',
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column'
+          }
+        }}
+      >
+        <Box sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+          <IconButton
+            onClick={handleChatClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: '#2c3e50'
+            }}
+          >
+            <Close />
+          </IconButton>
+          
+          <Typography variant="h6" sx={{ mb: 2, color: '#2c3e50', fontWeight: 'bold', pr: 4 }}>
+            Chat with Article: {selectedArticle?.title}
+          </Typography>
+
+          <Box sx={{ flexGrow: 1, overflow: 'auto', mb: 2 }}>
+            <List>
+              {messages.map((message, index) => (
+                <ListItem
+                  key={index}
+                  sx={{
+                    justifyContent: message.isUser ? 'flex-end' : 'flex-start',
+                    mb: 1
+                  }}
+                >
+                  <Paper
+                    elevation={1}
+                    sx={{
+                      p: 2,
+                      maxWidth: '70%',
+                      bgcolor: message.isUser ? '#e3f2fd' : '#f5f5f5',
+                      borderRadius: '10px'
+                    }}
+                  >
+                    <ListItemText primary={message.text} />
+                  </Paper>
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Makale hakkında bir soru sorun..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              disabled={loading}
+            />
+            <Button
+              variant="contained"
+              onClick={handleSendMessage}
+              disabled={loading || !newMessage.trim()}
+              sx={{
+                minWidth: '100px',
+                bgcolor: '#3498db',
+                '&:hover': {
+                  bgcolor: '#2980b9'
+                }
+              }}
+            >
+              {loading ? <CircularProgress size={24} /> : <Send />}
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Container>
   );
 };

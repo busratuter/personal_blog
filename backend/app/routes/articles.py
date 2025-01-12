@@ -12,8 +12,14 @@ from app.db.repositories.article_repository import (
     delete_article,
     create_article_from_file
 )
+from typing import List
+from ..services.gpt_service import gpt_service
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/articles", tags=["Articles"])
+
+class ChatMessage(BaseModel):
+    message: str
 
 @router.post("/", response_model=ArticleOut)
 def create_new_article(
@@ -108,3 +114,19 @@ async def upload_article(
             status_code=500,
             detail=str(e)
         )
+
+@router.post("/{article_id}/chat", response_model=str)
+async def chat_with_article(
+    article_id: int,
+    chat_message: ChatMessage,
+    db: Session = Depends(get_db)
+):
+    article = get_article(db, article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="Makale bulunamadı")
+    
+    # Kategori adını al
+    category_name = article.category.name if article.category else "Kategori belirtilmemiş"
+    
+    response = gpt_service.chat_with_article(article.content, article.title, category_name, chat_message.message)
+    return response

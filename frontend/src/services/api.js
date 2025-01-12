@@ -123,4 +123,15 @@ export const checkIfArticleSaved = async (articleId) => {
     return response.data.is_saved;
 };
 
+export const chatWithArticle = async (articleId, message) => {
+    try {
+        const response = await api.post(`/articles/${articleId}/chat`, {
+            message: message
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export default api;

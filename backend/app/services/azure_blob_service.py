@@ -1,11 +1,13 @@
 from azure.storage.blob import BlobServiceClient
 import json
-from config import AZURE_STORAGE_CONNECTION_STRING, AZURE_STORAGE_CONTAINER_NAME
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from config import settings
 
 class AzureBlobStorage:
     def __init__(self):
-        self.blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
-        self.container_client = self.blob_service_client.get_container_client(AZURE_STORAGE_CONTAINER_NAME)
+        self.blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+        self.container_client = self.blob_service_client.get_container_client(settings.AZURE_STORAGE_CONTAINER_NAME)
 
     def _get_user_folder_name(self, user_id, first_name, last_name):
         # Remove any special characters that might cause issues in blob storage

@@ -16,9 +16,10 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pyparsing==3.2.0
 pytube==12.1.0
-requests==2.32.3
+requests==2.31.0
 requests-oauthlib==2.0.0
 rsa==4.9
 uritemplate==4.1.1
 urllib3==2.2.3
 azure-storage-blob==12.19.0
+pydantic-settings==2.1.0
