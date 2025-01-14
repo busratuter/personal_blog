@@ -123,7 +123,7 @@ export const checkIfArticleSaved = async (articleId) => {
     return response.data.is_saved;
 };
 
-export const chatWithArticle = async (articleId, message) => {
+export const chatWithArticle = async (articleId, message) => { //id alacak
     try {
         const response = await api.post(`/articles/${articleId}/chat`, {
             message: message

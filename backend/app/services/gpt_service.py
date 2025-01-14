@@ -19,16 +19,15 @@ class GPTService:
             "messages": [
                 {"role": "system", "content": f"""Sen bir makale asistanısın. Aşağıdaki makale hakkında sorulara cevap vereceksin:
 
-Makale Başlığı: {article_title}
+            Makale Başlığı: {article_title}
 
-Makale Kategorisi: {article_category}
+            Makale Kategorisi: {article_category}
 
-Makale İçeriği:
-{article_content}"""},
-                {"role": "user", "content": user_message}
-            ],
+            Makale İçeriği:
+            {article_content}"""},
+                            {"role": "user", "content": user_message}
+                        ],
             "temperature": 0.7,
-            "max_tokens": 800
         }
 
         try:

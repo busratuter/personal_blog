@@ -129,7 +129,7 @@ const ArticleDetail = () => {
           sx={{ 
             p: 3,
             mx: 'auto',
-            maxWidth: '80%',
+            maxWidth: '60%',
             backgroundColor: '#fff',
             borderRadius: '10px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
