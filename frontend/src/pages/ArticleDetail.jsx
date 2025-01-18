@@ -19,6 +19,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Chat, Send } from '@mui/icons-material';
 import { getArticleById, chatWithArticle } from '../services/api';
+import { formatDate } from '../utils/dateUtils';
 
 const ArticleDetail = () => {
   const { id } = useParams();
@@ -41,6 +42,10 @@ const ArticleDetail = () => {
 
     fetchArticle();
   }, [id]);
+
+  const formatArticleDate = (dateString) => {
+    return formatDate(dateString);
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -89,13 +94,7 @@ const ArticleDetail = () => {
         </Box>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          {new Date(article.created_at).toLocaleDateString('tr-TR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+          {formatArticleDate(article.created_at)}
         </Typography>
 
         <Divider sx={{ mb: 3 }} />

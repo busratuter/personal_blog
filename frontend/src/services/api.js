@@ -134,4 +134,23 @@ export const chatWithArticle = async (articleId, message) => { //id alacak
     }
 };
 
+export const generateArticle = async (prompt) => {
+    const response = await api.post('/articles/generate', { text: prompt });
+    return response.data;
+};
+
+// Category functions
+export const createCategory = async (name) => {
+    const response = await api.post('/categories/', { 
+        name: name,
+        description: ''
+    });
+    return response.data;
+};
+
+export const searchCategories = async () => {
+    const response = await api.get('/categories/');
+    return response.data;
+};
+
 export default api;

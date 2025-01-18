@@ -12,9 +12,10 @@ from app.db.repositories.article_repository import (
     delete_article,
     create_article_from_file
 )
-from typing import List
+from typing import List, Optional
 from ..services.gpt_service import gpt_service
 from pydantic import BaseModel
+import json
 
 router = APIRouter(prefix="/articles", tags=["Articles"])
 
@@ -130,3 +131,21 @@ async def chat_with_article(
     
     response = gpt_service.chat_with_article(article.content, article.title, category_name, chat_message.message)
     return response
+
+@router.post("/generate", response_model=dict)
+async def generate_article(prompt: dict):
+    try:
+        response = gpt_service.generate_article(prompt["text"])
+        # GPT'den gelen string yanıtı JSON'a çevir
+        article_data = json.loads(response)
+        return article_data
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=500,
+            detail="GPT yanıtı beklenilen formatta değil"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

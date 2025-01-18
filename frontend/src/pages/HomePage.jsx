@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getArticlesFeed, saveArticle, unsaveArticle, checkIfArticleSaved, chatWithArticle } from '../services/api';
+import { formatDate } from '../utils/dateUtils';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { Bookmark, BookmarkBorder, Send, Chat, Close } from '@mui/icons-material';
 
@@ -54,9 +55,8 @@ const HomePage = () => {
     fetchArticles();
   }, []);
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('tr-TR', options);
+  const formatArticleDate = (dateString) => {
+    return formatDate(dateString);
   };
 
   const handleSaveToggle = async (articleId) => {
@@ -167,7 +167,7 @@ const HomePage = () => {
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                       <AccessTimeIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                      {formatDate(article.created_at)}
+                      {formatArticleDate(article.created_at)}
                     </Typography>
                   </Box>
                 </Box>
