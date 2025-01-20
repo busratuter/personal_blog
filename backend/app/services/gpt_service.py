@@ -17,7 +17,7 @@ class GPTService:
 
         data = {
             "messages": [
-                {"role": "system", "content": """Sen bir makale yazarısın. Kullanıcının isteğine göre bir makale oluşturacaksın.
+                {"role": "system", "content": """Sen bir makale yazarısın. Kullanıcının promptuna göre bir makale oluşturacaksın. Dönen response cevabı makaleye dönüştürüp kullanıcıya göndermelisin.
                 Yanıtını şu formatta ver:
                 {
                     "title": "Makalenin başlığı",
