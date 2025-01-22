@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     AZURE_STORAGE_CONTAINER_NAME: str = "blog-articles"
     
     # GPT settings
-    GPT_ENDPOINT: str = "https://busra-works.openai.azure.com/openai/deployments/4o-deneme/chat/completions?api-version=2024-08-01-preview"
+    GPT_ENDPOINT: str = "https://busra-works.openai.azure.com"
     GPT_API_KEY: str = "4fb500d5fe9742d8bd6b12d3fc42562a"
     GPT_MODEL: str = "4o-deneme"
 
