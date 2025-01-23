@@ -153,4 +153,26 @@ export const searchCategories = async () => {
     return response.data;
 };
 
+export const downloadArticlePDF = async (articleId) => {
+    try {
+        const response = await axios.get(`${api.defaults.baseURL}/articles/${articleId}/pdf`, {
+            responseType: 'blob',
+        });
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `article_${articleId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        return true;
+    } catch (error) {
+        console.error('PDF indirme hatası:', error);
+        throw error;
+    }
+};
+
 export default api;

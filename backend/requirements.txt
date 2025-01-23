@@ -26,3 +26,4 @@ pydantic-settings==2.1.0
 openai==1.11.1
 httpx==0.28.1
 c
+reportlab==4.0.8

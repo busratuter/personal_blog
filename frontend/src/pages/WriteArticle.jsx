@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { createArticle, generateArticle, searchCategories, createCategory } from '../services/api';
-import api from '../services/api';
+import MDEditor from '@uiw/react-md-editor';
 
 const WriteArticle = () => {
   const navigate = useNavigate();
@@ -36,7 +36,6 @@ const WriteArticle = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [creatingCategory, setCreatingCategory] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -342,22 +341,21 @@ const WriteArticle = () => {
               }}
             />
 
-            <TextField
-              fullWidth
-              label="Content"
-              multiline
-              rows={15}
-              variant="outlined"
-              value={article.content}
-              onChange={(e) => setArticle({ ...article, content: e.target.value })}
-              required
-              disabled={loading}
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 1
-                }
-              }}
-            />
+            <Box data-color-mode="light">
+              <MDEditor
+                value={article.content}
+                onChange={(value) => setArticle({ ...article, content: value || '' })}
+                preview="edit"
+                height={400}
+                hideToolbar={false}
+                textareaProps={{
+                  placeholder: 'Write your article content here...',
+                }}
+                style={{
+                  borderRadius: '4px',
+                }}
+              />
+            </Box>
 
             <Box sx={{ position: 'relative' }}>
               <TextField
@@ -372,7 +370,7 @@ const WriteArticle = () => {
                   }
                 }}
                 required
-                disabled={loading || creatingCategory}
+                disabled={loading}
                 error={showCategoryError}
                 helperText={showCategoryError ? "Please enter a category name" : "Type to search or create new category"}
                 sx={{ 
@@ -415,7 +413,7 @@ const WriteArticle = () => {
                 type="submit" 
                 variant="contained" 
                 size="large"
-                disabled={loading || creatingCategory}
+                disabled={loading}
                 sx={{
                   px: 4,
                   py: 1.5,
@@ -428,7 +426,7 @@ const WriteArticle = () => {
                   fontSize: '1.1rem'
                 }}
               >
-                {loading || creatingCategory ? <CircularProgress size={24} /> : 'Publish'}
+                {loading ? <CircularProgress size={24} /> : 'Publish'}
               </Button>
             </Box>
           </Box>

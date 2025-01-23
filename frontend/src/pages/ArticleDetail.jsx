@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -17,8 +18,8 @@ import {
   Collapse
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { Chat, Send } from '@mui/icons-material';
-import { getArticleById, chatWithArticle } from '../services/api';
+import { Chat, Send, Download } from '@mui/icons-material';
+import { getArticleById, chatWithArticle, downloadArticlePDF } from '../services/api';
 import { formatDate } from '../utils/dateUtils';
 
 const ArticleDetail = () => {
@@ -66,6 +67,14 @@ const ArticleDetail = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      await downloadArticlePDF(id);
+    } catch (error) {
+      console.error('PDF indirme hatası:', error);
+    }
+  };
+
   if (!article) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -82,10 +91,24 @@ const ArticleDetail = () => {
         </IconButton>
       </Box>
 
-      <Paper elevation={2} sx={{ p: 4, mb: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ mb: 3, color: '#2c3e50', fontWeight: 'bold' }}>
-          {article.title}
-        </Typography>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {article.title}
+          </Typography>
+          <IconButton
+            onClick={handleDownloadPDF}
+            sx={{
+              backgroundColor: '#3498db',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#2980b9'
+              }
+            }}
+          >
+            <Download />
+          </IconButton>
+        </Box>
 
         <Box sx={{ mb: 3, display: 'flex', gap: 1 }}>
           {article.tags?.map((tag) => (
@@ -99,9 +122,9 @@ const ArticleDetail = () => {
 
         <Divider sx={{ mb: 3 }} />
 
-        <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, color: '#2c3e50', whiteSpace: 'pre-wrap' }}>
-          {article.content}
-        </Typography>
+        <Box sx={{ mb: 4, lineHeight: 1.8, color: '#2c3e50' }}>
+          <ReactMarkdown>{article.content}</ReactMarkdown>
+        </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Button

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSavedArticles, unsaveArticle } from '../services/api';
+import ReactMarkdown from 'react-markdown';
 import { 
     Container, 
     Typography, 
@@ -144,7 +145,7 @@ const SavedArticles = () => {
                                         WebkitBoxOrient: 'vertical',
                                     }}
                                 >
-                                    {article.content}
+                                    <ReactMarkdown>{article.content.substring(0, 300) + '...'}</ReactMarkdown>
                                 </Typography>
 
                                 {article.category && (

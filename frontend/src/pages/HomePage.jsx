@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { 
   Container, 
   Typography, 
@@ -196,7 +197,7 @@ const HomePage = () => {
                     WebkitBoxOrient: 'vertical',
                   }}
                 >
-                  {article.content}
+                  <ReactMarkdown>{article.content.substring(0, 300) + '...'}</ReactMarkdown>
                 </Typography>
 
                 {article.category && (

@@ -16,6 +16,8 @@ from typing import List, Optional
 from ..services.gpt_service import gpt_service
 from pydantic import BaseModel
 import json
+from ..services.pdf_service import PDFService
+from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/articles", tags=["Articles"])
 
@@ -149,3 +151,18 @@ async def generate_article(prompt: dict):
             status_code=500,
             detail=str(e)
         )
+
+@router.get("/{article_id}/pdf")
+async def download_article_pdf(article_id: int, db: Session = Depends(get_db)):
+    article = get_article(db, article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    pdf_service = PDFService()
+    pdf_buffer = pdf_service.create_article_pdf(article.__dict__)
+    
+    headers = {
+        'Content-Disposition': f'attachment; filename="article_{article_id}.pdf"'
+    }
+    
+    return StreamingResponse(pdf_buffer, media_type="application/pdf", headers=headers)
