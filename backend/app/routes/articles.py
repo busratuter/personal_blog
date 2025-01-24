@@ -158,8 +158,14 @@ async def download_article_pdf(article_id: int, db: Session = Depends(get_db)):
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     
+    # SQLAlchemy modelini güvenli bir şekilde dict'e dönüştür
+    article_data = {
+        'title': getattr(article, 'title', ''),
+        'content': getattr(article, 'content', '')
+    }
+    
     pdf_service = PDFService()
-    pdf_buffer = pdf_service.create_article_pdf(article.__dict__)
+    pdf_buffer = pdf_service.create_article_pdf(article_data)
     
     headers = {
         'Content-Disposition': f'attachment; filename="article_{article_id}.pdf"'

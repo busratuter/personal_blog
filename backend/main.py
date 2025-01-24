@@ -20,10 +20,11 @@ app = FastAPI(
 # CORS ayarları
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React uygulamasının adresi
+    allow_origins=["http://localhost:3000"],  # Frontend'in çalıştığı adres
     allow_credentials=True,
-    allow_methods=["*"],  # Tüm HTTP metodlarına izin ver
-    allow_headers=["*"],  # Tüm headers'lara izin ver
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition"]  # PDF indirme için gerekli
 )
 
 # Rotaları ekle

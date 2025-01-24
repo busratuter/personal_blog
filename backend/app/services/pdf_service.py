@@ -1,27 +1,42 @@
-from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.lib.units import cm
 from io import BytesIO
 import os
 
 class PDFService:
     def __init__(self):
-        # Liberation Sans fontunu kaydet
-        font_path = os.path.join(os.path.dirname(__file__), '../static/fonts/LiberationSans-Regular.ttf')
-        font_bold_path = os.path.join(os.path.dirname(__file__), '../static/fonts/LiberationSans-Bold.ttf')
-        
-        try:
-            # Fontları kaydet
-            pdfmetrics.registerFont(TTFont('LiberationSans', font_path))
-            pdfmetrics.registerFont(TTFont('LiberationSans-Bold', font_bold_path))
-        except:
-            print("Font yüklenemedi, lütfen font dosyalarının varlığını kontrol edin")
+        # Font dosyalarının yolları
+        self.fonts_dir = os.path.join(os.path.dirname(__file__), '../static/fonts')
+        regular_font = os.path.join(self.fonts_dir, 'DejaVuSans.ttf')
+        bold_font = os.path.join(self.fonts_dir, 'DejaVuSans-Bold.ttf')
 
-    def create_article_pdf(self, article):
+        try:
+            # Regular font'u kaydet
+            regular_font_obj = ttfonts.TTFont('DejaVuSans', regular_font)
+            pdfmetrics.registerFont(regular_font_obj)
+
+            # Bold font'u kaydet
+            bold_font_obj = ttfonts.TTFont('DejaVuSans-Bold', bold_font)
+            pdfmetrics.registerFont(bold_font_obj)
+
+            # Font ailesini kaydet
+            pdfmetrics.registerFontFamily(
+                'DejaVuSans',
+                normal='DejaVuSans',
+                bold='DejaVuSans-Bold'
+            )
+
+            self.normal_font = 'DejaVuSans'
+            self.bold_font = 'DejaVuSans-Bold'
+        except Exception as e:
+            print(f"Font yüklenemedi: {str(e)}")
+            self.normal_font = 'Helvetica'
+            self.bold_font = 'Helvetica-Bold'
+
+    def create_article_pdf(self, article_dict):
         buffer = BytesIO()
         
         # PDF dokümanını oluştur
@@ -33,55 +48,60 @@ class PDFService:
             topMargin=2*cm,
             bottomMargin=2*cm
         )
+
+        # Stil tanımlamaları
+        styles = getSampleStyleSheet()
         
-        # Özel stiller oluştur
+        # Başlık stili
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Title'],
+            fontName=self.bold_font,
+            fontSize=24,
+            leading=30,
+            alignment=1,  # Ortalı
+            spaceAfter=30
+        )
+
+        # Normal metin stili
         normal_style = ParagraphStyle(
             'CustomNormal',
+            parent=styles['Normal'],
+            fontName=self.normal_font,
             fontSize=12,
             leading=16,
             spaceBefore=12,
-            spaceAfter=12,
-            fontName='LiberationSans'
+            spaceAfter=12
         )
-        
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            fontSize=24,
-            leading=30,
-            spaceBefore=12,
-            spaceAfter=30,
-            alignment=1,  # Ortalı
-            fontName='LiberationSans-Bold'
-        )
-        
+
         # İçeriği hazırla
         story = []
         
         # Başlık
-        title = article.get('title', '')
-        story.append(Paragraph(title, title_style))
-        story.append(Spacer(1, 30))
-        
-        # İçerik - Markdown içeriğini düz metne çevir
-        content = article.get('content', '').replace('#', '').replace('*', '')  # Markdown işaretlerini kaldır
-        paragraphs = content.split('\n')
-        
-        for paragraph in paragraphs:
-            if paragraph.strip():
-                # HTML entities'i düzelt
-                paragraph = (
-                    paragraph
-                    .replace('&nbsp;', ' ')
-                    .replace('&quot;', '"')
-                    .replace('&apos;', "'")
-                    .replace('&lt;', '<')
-                    .replace('&gt;', '>')
-                    .replace('&amp;', '&')
-                )
-                story.append(Paragraph(paragraph, normal_style))
-                story.append(Spacer(1, 12))
-        
+        title = article_dict.get('title', '')
+        if isinstance(title, str):
+            # XML özel karakterlerini dönüştür
+            title = title.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            story.append(Paragraph(title, title_style))
+            story.append(Spacer(1, 30))
+
+        # İçerik
+        content = article_dict.get('content', '')
+        if isinstance(content, str):
+            # Markdown işaretlerini kaldır
+            content = content.replace('#', '').replace('*', '')
+            
+            # Paragrafları böl ve işle
+            paragraphs = content.split('\n')
+            for paragraph in paragraphs:
+                if paragraph.strip():
+                    # XML özel karakterlerini dönüştür
+                    paragraph = paragraph.strip().replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                    story.append(Paragraph(paragraph, normal_style))
+                    story.append(Spacer(1, 12))
+
         # PDF'i oluştur
         doc.build(story)
+        
         buffer.seek(0)
-        return buffer 
+        return buffer
