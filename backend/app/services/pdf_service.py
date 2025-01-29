@@ -46,7 +46,8 @@ class PDFService:
             rightMargin=2*cm,
             leftMargin=2*cm,
             topMargin=2*cm,
-            bottomMargin=2*cm
+            bottomMargin=2*cm,
+            encoding='UTF-8'
         )
 
         # Stil tanımlamaları
@@ -60,7 +61,8 @@ class PDFService:
             fontSize=24,
             leading=30,
             alignment=1,  # Ortalı
-            spaceAfter=30
+            spaceAfter=30,
+            encoding='UTF-8'
         )
 
         # Normal metin stili
@@ -71,7 +73,8 @@ class PDFService:
             fontSize=12,
             leading=16,
             spaceBefore=12,
-            spaceAfter=12
+            spaceAfter=12,
+            encoding='UTF-8'
         )
 
         # İçeriği hazırla
@@ -80,8 +83,6 @@ class PDFService:
         # Başlık
         title = article_dict.get('title', '')
         if isinstance(title, str):
-            # XML özel karakterlerini dönüştür
-            title = title.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
             story.append(Paragraph(title, title_style))
             story.append(Spacer(1, 30))
 
@@ -95,9 +96,7 @@ class PDFService:
             paragraphs = content.split('\n')
             for paragraph in paragraphs:
                 if paragraph.strip():
-                    # XML özel karakterlerini dönüştür
-                    paragraph = paragraph.strip().replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                    story.append(Paragraph(paragraph, normal_style))
+                    story.append(Paragraph(paragraph.strip(), normal_style))
                     story.append(Spacer(1, 12))
 
         # PDF'i oluştur
