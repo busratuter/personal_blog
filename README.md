@@ -65,10 +65,6 @@ This project is a blog platform where users can write articles, categorize them,
 - Once the application is running, you can access it at [http://localhost:8000](http://localhost:8000).
 - API documentation is available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-## Contributing
-
-If you wish to contribute, please submit a pull request or open an issue.
-
 ## License
 
 This project is licensed under the MIT License. 
